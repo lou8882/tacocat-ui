@@ -44,48 +44,99 @@ bundle exec pod install # Install CocoaPods dependencies
 ```
 src/
 ├── api/
-│   └── client.ts          # MLB API client with error handling
+│   └── client.ts          # MLB API client with schedule and game data methods
+├── components/
+│   ├── atoms/             # Basic UI building blocks
+│   │   ├── DataLabel/     # Styled labels for data fields
+│   │   ├── DataValue/     # Styled values for data fields
+│   │   ├── EventCounter/  # Event navigation counter display
+│   │   ├── EventTime/     # Time display for events
+│   │   ├── LoadButton/    # Game loading button
+│   │   ├── NavButton/     # Navigation button component
+│   │   ├── SectionTitle/  # Section heading component
+│   │   └── SubSectionTitle/ # Subsection heading component
+│   ├── molecules/         # Composite UI components
+│   │   ├── CountDisplay/  # Ball/strike/out count display
+│   │   ├── DataRow/       # Data label/value row layout
+│   │   ├── EventHeader/   # Event information header
+│   │   ├── LoadingIndicator/ # Loading state indicator
+│   │   ├── MatchupDisplay/ # Pitcher/batter matchup info
+│   │   ├── NavigationControls/ # Event/play navigation controls
+│   │   ├── PitchSpeedDisplay/ # Pitch velocity display
+│   │   └── ScoreDisplay/  # Game score display
+│   └── organisms/         # Complex feature components
+│       ├── BreaksSection/ # Pitch break data visualization
+│       ├── CoordinatesSection/ # Pitch coordinate data
+│       ├── EventContainer/ # Main event display container
+│       ├── EventDetails/  # Event description and metadata
+│       ├── EventMetadata/ # Technical event information
+│       ├── GameHeader/    # Game loading interface
+│       ├── PitchDataSection/ # Primary pitch data display
+│       └── StrikeZoneSection/ # Strike zone information
 ├── screens/
-│   └── game.tsx           # Main game data visualization screen
+│   ├── Welcome.tsx        # Welcome screen with recent game selection
+│   └── game.tsx           # Alternative game display screen (legacy)
 ├── types/
-│   └── mlb.ts            # TypeScript interfaces for MLB API data
+│   └── mlb.ts            # Complete TypeScript interfaces for MLB API
 └── utils/
-    └── tooltips.ts       # Pitch data tooltips and educational content
+    └── tooltips.ts       # Educational tooltips for baseball terminology
 ```
 
 ### Key Components
 
 **API Layer** (`src/api/client.ts`):
-- Single API client for MLB StatsAPI integration
+- `getMLBGameData()` - Fetches live game feed data
+- `getMLBSchedule()` - Fetches game schedule for date ranges
 - Standardized error handling with `ApiResponse<T>` interface
 - Uses MLB official API endpoint: `https://statsapi.mlb.com`
 
 **Data Types** (`src/types/mlb.ts`):
-- Complete TypeScript definitions for MLB game data
-- `MLBGameData` interface for top-level game structure
-- `PlayEvent` interface for individual pitch/play events
-- `EventDetails` interface for comprehensive event metadata
+- `MLBGameData` - Complete game data structure
+- `MLBScheduleResponse` - Schedule API response structure
+- `PlayEvent` - Individual pitch/play event with inherited matchup data
+- `EventDetails` - Event metadata, scoring, and play information
+- `Play` - Container for play events with matchup information
 
-**Screen Components**:
-- `App.tsx` - Main application entry point with game event viewer
-- `src/screens/game.tsx` - Detailed game screen (duplicate of App.tsx functionality)
-- Both screens provide event-by-event navigation through game data
+**Application Flow**:
+- **Welcome Screen** (`src/screens/Welcome.tsx`):
+  - Automatically loads recent games for team ID 136 (hardcoded)
+  - Searches past 3 days for most recent home game
+  - Displays game information and "Continue to Game Details" option
+- **Main App** (`App.tsx`):
+  - Primary game event viewer with comprehensive pitch-by-pitch navigation
+  - Processes game data to extract all play events with inherited matchup data
+  - Provides event-level and play-level navigation controls
+  - Displays detailed pitch data, coordinates, break information
 
-**Utilities** (`src/utils/tooltips.ts`):
-- Comprehensive tooltip system for baseball terminology
-- Educational content for pitch tracking data (velocity, spin rate, coordinates)
-- Modal-based tooltip components with detailed explanations
+**Component Architecture**:
+- **Atomic Design Pattern**: Components organized as atoms → molecules → organisms
+- **Atoms**: Basic UI elements (buttons, labels, displays)
+- **Molecules**: Composed components (data rows, navigation controls)
+- **Organisms**: Feature-complete sections (pitch data, coordinates, metadata)
+- All components have co-located styles in separate `.ts` files
 
 ### State Management
-- Uses React hooks (`useState`) for local component state
-- No external state management library (Redux, Zustand, etc.)
-- Main state includes: game data, loading status, current event index, all events array
+- React hooks (`useState`) for all state management
+- No external state management libraries
+- **Main App State**:
+  - `gameData` - Complete MLB game data
+  - `allEvents` - Flattened array of all play events
+  - `currentEventIndex` - Current event being viewed
+  - `playBoundaries` - Array tracking start indices of each play
+  - `showWelcome` - Welcome screen visibility toggle
+  - `selectedGamePk` - Currently selected game ID
 
 ### Data Flow
-1. User loads game data via API call to MLB StatsAPI
-2. Raw game data is processed to extract individual play events
-3. Events are navigated sequentially with Previous/Next controls
-4. Detailed pitch data is displayed when available (velocity, coordinates, break data)
+1. **Welcome Screen**: Loads recent games, user selects game
+2. **Game Loading**: Fetches complete game data via MLB API
+3. **Data Processing**: Extracts and flattens all play events, inheriting matchup data from parent plays
+4. **Navigation**: Users navigate through events with Previous/Next controls at event and play levels
+5. **Data Display**: Shows comprehensive pitch data when available (velocity, coordinates, break data, strike zone info)
+
+### Navigation System
+- **Event Navigation**: Step through individual pitches/events within plays
+- **Play Navigation**: Jump between complete at-bat sequences
+- **Boundary Tracking**: `playBoundaries` array tracks play start positions for efficient play-level navigation
 
 ## Code Conventions
 
@@ -135,7 +186,9 @@ src/
 ## Notable Features
 
 ### MLB Data Integration
-- Real game data from MLB's official StatsAPI
+- Real game data from MLB's official StatsAPI (https://statsapi.mlb.com)
+- **Game Feed**: `/api/v1.1/game/{gamePk}/feed/live` - Live game data with play-by-play
+- **Schedule**: `/api/v1/schedule/games/?sportId=1&startDate={date}&endDate={date}` - Game schedules
 - Comprehensive pitch tracking data including:
   - Velocity (start/end speed)
   - Coordinates (3D position and movement)
@@ -143,11 +196,22 @@ src/
   - Strike zone information
 
 ### Educational Content
-- Extensive tooltip system explaining baseball terminology
+- Extensive tooltip system explaining baseball terminology (`src/utils/tooltips.ts`)
 - Detailed explanations for pitch tracking metrics
 - User-friendly presentation of complex baseball analytics
 
-### Navigation
-- Event-by-event navigation through entire games
-- Visual indicators for current position in game
-- Time-based event organization
+### Navigation Features
+- **Dual Navigation**: Event-by-event and play-by-play navigation
+- **Smart Boundaries**: Tracks play boundaries for efficient play-level jumping
+- **Inherited Context**: Events inherit matchup data from parent plays for consistent display
+- **Real-time Indicators**: Current position tracking through entire games
+
+### Welcome Screen Integration  
+- **Auto-discovery**: Automatically finds recent games for team ID 136
+- **Smart Filtering**: Searches for completed or live home games in past 3 days
+- **One-click Access**: Direct game loading from schedule selection
+
+### Component Reusability
+- **Atomic Design**: Highly modular component system
+- **Co-located Styles**: Each component has dedicated styles file
+- **Type Safety**: Comprehensive TypeScript coverage across all components
