@@ -146,7 +146,7 @@ function App(): React.JSX.Element {
             <EventHeader 
               currentIndex={currentEventIndex} 
               totalEvents={allEvents.length} 
-              timeString={currentEvent.startTime} 
+              timeString={currentEvent.startTime || 'N/A'} 
             />
 
             <ScrollView style={styles.pitchDataScrollView} contentContainerStyle={styles.pitchDataContent}>

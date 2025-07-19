@@ -79,7 +79,7 @@ src/
 ├── types/
 │   └── mlb.ts            # Complete TypeScript interfaces for MLB API
 └── utils/
-    └── tooltips.ts       # Educational tooltips for baseball terminology
+    └── tooltips.tsx      # Educational tooltips for baseball terminology
 ```
 
 ### Key Components
@@ -196,7 +196,7 @@ src/
   - Strike zone information
 
 ### Educational Content
-- Extensive tooltip system explaining baseball terminology (`src/utils/tooltips.ts`)
+- Extensive tooltip system explaining baseball terminology (`src/utils/tooltips.tsx`)
 - Detailed explanations for pitch tracking metrics
 - User-friendly presentation of complex baseball analytics
 
