@@ -26,23 +26,18 @@ export const NavigationControls: React.FC<NavigationControlsProps> = ({
 }) => {
   return (
     <View style={styles.container}>
-      <View style={styles.playControls}>
-        <NavButton onPress={onPreviousPlay} disabled={!canGoPreviousPlay}>
-          ⏮ Prev Play
-        </NavButton>
-        <NavButton onPress={onNextPlay} disabled={!canGoNextPlay}>
-          Next Play ⏭
-        </NavButton>
-      </View>
-      
-      <View style={styles.eventControls}>
-        <NavButton onPress={onPrevious} disabled={!canGoPrevious}>
-          ← Prev Pitch
-        </NavButton>
-        <NavButton onPress={onNext} disabled={!canGoNext}>
-          Next Pitch →
-        </NavButton>
-      </View>
+      <NavButton onPress={onPreviousPlay} disabled={!canGoPreviousPlay}>
+        ⏮ Prev Play
+      </NavButton>
+      <NavButton onPress={onPrevious} disabled={!canGoPrevious}>
+        ← Prev Pitch
+      </NavButton>
+      <NavButton onPress={onNext} disabled={!canGoNext}>
+        Next Pitch →
+      </NavButton>
+      <NavButton onPress={onNextPlay} disabled={!canGoNextPlay}>
+        Next Play ⏭
+      </NavButton>
     </View>
   );
 };

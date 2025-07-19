@@ -1,5 +1,43 @@
 // src/types/mlb.ts
 
+export interface DiffPatchOperation {
+  op: 'add' | 'remove' | 'replace' | 'move' | 'copy' | 'test';
+  path: string;
+  value?: any;
+  from?: string;
+}
+
+export interface DiffPatchResponse {
+  diff: DiffPatchOperation[];
+  metaData?: {
+    timeStamp: string;
+    wait?: number;
+    gameEvents?: string[];
+    logicalEvents?: string[];
+  };
+}
+
+export interface MLBTeam {
+  id: number;
+  name: string;
+  teamName: string;
+  locationName: string;
+  abbreviation: string;
+  teamCode: string;
+  sport: {
+    id: number;
+    name: string;
+  };
+  league: {
+    id: number;
+    name: string;
+  };
+}
+
+export interface TeamsResponse {
+  teams: MLBTeam[];
+}
+
 // Complete MLB Game Feed Response
 export interface MLBGameData {
   copyright: string;
@@ -367,6 +405,15 @@ export interface PlayEvent {
   };
   pitchNumber?: number;
   playId?: string;
+  playResult?: {
+    type: string;
+    event: string;
+    eventType: string;
+    description: string;
+    rbi?: number;
+    awayScore: number;
+    homeScore: number;
+  };
   matchup?: {
     batter: {
       id: number;

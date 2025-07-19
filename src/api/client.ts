@@ -1,5 +1,5 @@
 // src/api/client.ts
-import { MLBGameData, MLBScheduleResponse } from '../types/mlb';
+import { MLBGameData, MLBScheduleResponse, DiffPatchResponse, TeamsResponse } from '../types/mlb';
 
 const MLB_API_BASE = 'https://statsapi.mlb.com';
 
@@ -35,6 +35,50 @@ export const apiClient = {
   async getMLBSchedule(startDate: string, endDate: string): Promise<ApiResponse<MLBScheduleResponse>> {
     try {
       const response = await fetch(`${MLB_API_BASE}/api/v1/schedule/games/?sportId=1&startDate=${startDate}&endDate=${endDate}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      return {
+        data,
+        success: true,
+      };
+    } catch (error) {
+      return {
+        data: null as any,
+        success: false,
+        message: error instanceof Error ? error.message : 'Network error',
+      };
+    }
+  },
+
+  async getMLBGameDiffPatch(gamePk: number, startTimestamp: string): Promise<ApiResponse<DiffPatchResponse | MLBGameData | any[]>> {
+    try {
+      const response = await fetch(`${MLB_API_BASE}/api/v1.1/game/${gamePk}/feed/live/diffPatch?startTimecode=${startTimestamp}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      return {
+        data,
+        success: true,
+      };
+    } catch (error) {
+      return {
+        data: null as any,
+        success: false,
+        message: error instanceof Error ? error.message : 'Network error',
+      };
+    }
+  },
+
+  async getMLBTeams(): Promise<ApiResponse<TeamsResponse>> {
+    try {
+      const response = await fetch(`${MLB_API_BASE}/api/v1/teams`);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);

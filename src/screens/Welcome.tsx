@@ -5,9 +5,11 @@ import {
   StyleSheet,
   Alert,
   TouchableOpacity,
+  Modal,
+  FlatList,
 } from 'react-native';
 import { apiClient } from '../api/client';
-import { ScheduleGame } from '../types/mlb';
+import { ScheduleGame, MLBTeam } from '../types/mlb';
 import { LoadingIndicator } from '../components';
 
 interface WelcomeProps {
@@ -29,15 +31,15 @@ const getPastThreeDays = (): { startDate: string; endDate: string } => {
   };
 };
 
-const findMostRecentHomeGame = (games: ScheduleGame[], homeTeamId: number): ScheduleGame | null => {
-  const homeGames = games.filter(game => 
-    game.teams.home.team.id === homeTeamId && 
+const findMostRecentGame = (games: ScheduleGame[], teamId: number): ScheduleGame | null => {
+  const teamGames = games.filter(game => 
+    (game.teams.home.team.id === teamId || game.teams.away.team.id === teamId) && 
     (game.status.abstractGameState === 'Final' || game.status.abstractGameState === 'Live')
   );
   
-  if (homeGames.length === 0) return null;
+  if (teamGames.length === 0) return null;
   
-  return homeGames.reduce((mostRecent, current) => {
+  return teamGames.reduce((mostRecent, current) => {
     return new Date(current.gameDate) > new Date(mostRecent.gameDate) ? current : mostRecent;
   });
 };
@@ -45,8 +47,33 @@ const findMostRecentHomeGame = (games: ScheduleGame[], homeTeamId: number): Sche
 export const Welcome: React.FC<WelcomeProps> = ({ onGameSelected }) => {
   const [loading, setLoading] = useState(false);
   const [recentGame, setRecentGame] = useState<ScheduleGame | null>(null);
+  const [teams, setTeams] = useState<MLBTeam[]>([]);
+  const [selectedTeamId, setSelectedTeamId] = useState<number>(136); // Seattle Mariners default
+  const [loadingTeams, setLoadingTeams] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
 
-  const loadRecentGame = async () => {
+  const loadTeams = async () => {
+    setLoadingTeams(true);
+    try {
+      const result = await apiClient.getMLBTeams();
+      
+      if (result.success && result.data) {
+        // Filter for MLB teams only (sport.id === 1) and sort by name
+        const mlbTeams = result.data.teams
+          .filter(team => team.sport.id === 1)
+          .sort((a, b) => a.name.localeCompare(b.name));
+        setTeams(mlbTeams);
+      } else {
+        Alert.alert('Error', result.message || 'Failed to load teams data');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to fetch teams data');
+    } finally {
+      setLoadingTeams(false);
+    }
+  };
+
+  const loadRecentGame = async (teamId: number = selectedTeamId) => {
     setLoading(true);
     try {
       const { startDate, endDate } = getPastThreeDays();
@@ -58,12 +85,14 @@ export const Welcome: React.FC<WelcomeProps> = ({ onGameSelected }) => {
           allGames.push(...date.games);
         });
         
-        const mostRecentGame = findMostRecentHomeGame(allGames, 136);
+        const mostRecentGame = findMostRecentGame(allGames, teamId);
         
         if (mostRecentGame) {
           setRecentGame(mostRecentGame);
         } else {
-          Alert.alert('No Games Found', 'No recent games found for the home team (ID: 136) in the past 3 days.');
+          const selectedTeam = teams.find(team => team.id === teamId);
+          const teamName = selectedTeam ? selectedTeam.name : `Team ID: ${teamId}`;
+          Alert.alert('No Games Found', `No recent games found for ${teamName} in the past 3 days.`);
         }
       } else {
         Alert.alert('Error', result.message || 'Failed to load schedule data');
@@ -75,9 +104,24 @@ export const Welcome: React.FC<WelcomeProps> = ({ onGameSelected }) => {
     }
   };
 
+  const handleTeamChange = (teamId: number) => {
+    setSelectedTeamId(teamId);
+    setShowDropdown(false);
+    setRecentGame(null); // Clear current game
+    loadRecentGame(teamId);
+  };
+
+  const selectedTeam = teams.find(team => team.id === selectedTeamId);
+
   useEffect(() => {
-    loadRecentGame();
+    loadTeams();
   }, []);
+
+  useEffect(() => {
+    if (teams.length > 0) {
+      loadRecentGame();
+    }
+  }, [teams, selectedTeamId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleContinueToGame = () => {
     if (recentGame) {
@@ -98,6 +142,70 @@ export const Welcome: React.FC<WelcomeProps> = ({ onGameSelected }) => {
     <View style={styles.container}>
       <Text style={styles.title}>Welcome to TacoCat UI</Text>
       
+      {loadingTeams ? (
+        <View style={styles.teamDropdownContainer}>
+          <Text style={styles.dropdownLabel}>Loading teams...</Text>
+        </View>
+      ) : (
+        <View style={styles.teamDropdownContainer}>
+          <Text style={styles.dropdownLabel}>Select Team:</Text>
+          <TouchableOpacity 
+            style={styles.dropdownButton}
+            onPress={() => setShowDropdown(true)}
+          >
+            <Text style={styles.dropdownButtonText}>
+              {selectedTeam ? selectedTeam.name : 'Select a team...'}
+            </Text>
+            <Text style={styles.dropdownArrow}>▼</Text>
+          </TouchableOpacity>
+          
+          <Modal
+            visible={showDropdown}
+            transparent={true}
+            animationType="fade"
+            onRequestClose={() => setShowDropdown(false)}
+          >
+            <TouchableOpacity 
+              style={styles.modalOverlay}
+              activeOpacity={1}
+              onPress={() => setShowDropdown(false)}
+            >
+              <View style={styles.modalContent}>
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>Select Team</Text>
+                  <TouchableOpacity 
+                    onPress={() => setShowDropdown(false)}
+                    style={styles.closeButton}
+                  >
+                    <Text style={styles.closeButtonText}>✕</Text>
+                  </TouchableOpacity>
+                </View>
+                <FlatList
+                  data={teams}
+                  keyExtractor={(item) => item.id.toString()}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
+                      style={[
+                        styles.teamOption,
+                        item.id === selectedTeamId && styles.selectedTeamOption
+                      ]}
+                      onPress={() => handleTeamChange(item.id)}
+                    >
+                      <Text style={[
+                        styles.teamOptionText,
+                        item.id === selectedTeamId && styles.selectedTeamOptionText
+                      ]}>
+                        {item.name}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                  style={styles.teamList}
+                />
+              </View>
+            </TouchableOpacity>
+          </Modal>
+        </View>
+      )}
       
       {recentGame ? (
         <View style={styles.gameCard}>
@@ -128,8 +236,8 @@ export const Welcome: React.FC<WelcomeProps> = ({ onGameSelected }) => {
         </View>
       ) : (
         <View style={styles.noGameCard}>
-          <Text style={styles.noGameText}>No recent games found for the home team in the past 3 days.</Text>
-          <TouchableOpacity style={styles.retryButton} onPress={loadRecentGame}>
+          <Text style={styles.noGameText}>No recent games found for the selected team in the past 3 days.</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={() => loadRecentGame()}>
             <Text style={styles.retryButtonText}>Retry</Text>
           </TouchableOpacity>
         </View>
@@ -259,6 +367,101 @@ const styles = StyleSheet.create({
   retryButtonText: {
     color: 'white',
     fontSize: 16,
+    fontWeight: '600',
+  },
+  teamDropdownContainer: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  dropdownLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 8,
+  },
+  dropdownButton: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    backgroundColor: '#f9f9f9',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    minHeight: 50,
+  },
+  dropdownButtonText: {
+    fontSize: 16,
+    color: '#333',
+    flex: 1,
+  },
+  dropdownArrow: {
+    fontSize: 12,
+    color: '#666',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    width: '90%',
+    maxHeight: '70%',
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+  },
+  closeButton: {
+    padding: 8,
+  },
+  closeButtonText: {
+    fontSize: 18,
+    color: '#666',
+  },
+  teamList: {
+    maxHeight: 400,
+  },
+  teamOption: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  selectedTeamOption: {
+    backgroundColor: '#007AFF',
+  },
+  teamOptionText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  selectedTeamOptionText: {
+    color: 'white',
     fontWeight: '600',
   },
 });

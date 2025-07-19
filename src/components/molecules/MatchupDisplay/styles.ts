@@ -55,4 +55,46 @@ export const styles = StyleSheet.create({
     color: '#999',
     fontWeight: '500',
   },
+  playResultContainer: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+    alignItems: 'center',
+  },
+  playResultLabel: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 4,
+    textTransform: 'uppercase',
+    fontWeight: '500',
+  },
+  playResultEvent: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#007AFF',
+    textAlign: 'center',
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  backButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+  },
+  backButtonText: {
+    color: '#007AFF',
+    fontSize: 14,
+  },
+  goToLiveButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+  },
+  goToLiveButtonText: {
+    color: '#007AFF',
+    fontSize: 14,
+  },
 });
