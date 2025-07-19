@@ -6,24 +6,43 @@ import { styles } from './styles';
 export interface NavigationControlsProps {
   onPrevious: () => void;
   onNext: () => void;
+  onPreviousPlay: () => void;
+  onNextPlay: () => void;
   canGoPrevious: boolean;
   canGoNext: boolean;
+  canGoPreviousPlay: boolean;
+  canGoNextPlay: boolean;
 }
 
 export const NavigationControls: React.FC<NavigationControlsProps> = ({
   onPrevious,
   onNext,
+  onPreviousPlay,
+  onNextPlay,
   canGoPrevious,
   canGoNext,
+  canGoPreviousPlay,
+  canGoNextPlay,
 }) => {
   return (
     <View style={styles.container}>
-      <NavButton onPress={onPrevious} disabled={!canGoPrevious}>
-        ← Previous
-      </NavButton>
-      <NavButton onPress={onNext} disabled={!canGoNext}>
-        Next →
-      </NavButton>
+      <View style={styles.playControls}>
+        <NavButton onPress={onPreviousPlay} disabled={!canGoPreviousPlay}>
+          ⏮ Prev Play
+        </NavButton>
+        <NavButton onPress={onNextPlay} disabled={!canGoNextPlay}>
+          Next Play ⏭
+        </NavButton>
+      </View>
+      
+      <View style={styles.eventControls}>
+        <NavButton onPress={onPrevious} disabled={!canGoPrevious}>
+          ← Prev Pitch
+        </NavButton>
+        <NavButton onPress={onNext} disabled={!canGoNext}>
+          Next Pitch →
+        </NavButton>
+      </View>
     </View>
   );
 };

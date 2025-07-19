@@ -5,6 +5,7 @@ export { LoadingIndicator } from './LoadingIndicator';
 export { NavigationControls } from './NavigationControls';
 export { CountDisplay } from './CountDisplay';
 export { ScoreDisplay } from './ScoreDisplay';
+export { MatchupDisplay } from './MatchupDisplay';
 
 // Re-export LoadButton from atoms for convenience
 export { LoadButton } from '../atoms';
@@ -16,3 +17,4 @@ export type { LoadingIndicatorProps } from './LoadingIndicator';
 export type { NavigationControlsProps } from './NavigationControls';
 export type { CountDisplayProps } from './CountDisplay';
 export type { ScoreDisplayProps } from './ScoreDisplay';
+export type { MatchupDisplayProps } from './MatchupDisplay';

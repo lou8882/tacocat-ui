@@ -9,7 +9,12 @@ export interface EventTimeProps {
 export const EventTime: React.FC<EventTimeProps> = ({ timeString }) => {
   const formatTime = (time: string) => {
     const date = new Date(time);
-    return date.toLocaleTimeString();
+    return date.toLocaleTimeString([], { 
+      hour: '2-digit', 
+      minute: '2-digit', 
+      second: '2-digit',
+      hour12: true 
+    });
   };
 
   return (

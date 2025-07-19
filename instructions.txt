@@ -1,0 +1,19 @@
+ Tips for getting started:
+
+ 1. Run /init to create a CLAUDE.md file with instructions for Claude
+ 2. Use Claude to help with file analysis, editing, bash commands and git
+ 3. Be as specific as you would with another engineer for the best results
+ 4. ✔ Run /terminal-setup to set up terminal integration
+
+ ※ Tip: Start with small features or bug fixes, tell Claude to propose a plan, and verify its suggested edits
+╭────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ ✻ Welcome to Claude Code for VS Code                                                                                               │
+│   installed extension v1.0.56                                                                                                      │
+│                                                                                                                                    │
+│  • Claude has context of ⧉ open files and ⧉ selected lines                                                                         │
+│                                                                                                                                    │
+│  • Review Claude Code's changes +11 -22 in the comfort of your IDE                                                                 │
+│                                                                                                                                    │
+│  • Cmd+Esc for Quick Launch                                                                                                        │
+│                                                                                                                                    │
+│  • Cmd+Option+K to reference files or lines in your input    

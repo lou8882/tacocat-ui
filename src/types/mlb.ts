@@ -18,6 +18,24 @@ export interface MLBGameData {
 
 export interface Play {
   playEvents: PlayEvent[];
+  matchup?: {
+    batter: {
+      id: number;
+      fullName: string;
+    };
+    batSide: {
+      code: string;
+      description: string;
+    };
+    pitcher: {
+      id: number;
+      fullName: string;
+    };
+    pitchHand: {
+      code: string;
+      description: string;
+    };
+  };
 }
 
 export interface PlayEvent {
@@ -34,6 +52,24 @@ export interface PlayEvent {
   type: string;
   pitchNumber?: number;
   pitchData?: any; // We can expand this if needed
+  matchup?: {
+    batter: {
+      id: number;
+      fullName: string;
+    };
+    batSide: {
+      code: string;
+      description: string;
+    };
+    pitcher: {
+      id: number;
+      fullName: string;
+    };
+    pitchHand: {
+      code: string;
+      description: string;
+    };
+  };
 }
 
 export interface EventDetails {
@@ -58,5 +94,51 @@ export interface EventDetails {
   type?: {
     code: string;
     description: string;
+  };
+}
+
+export interface MLBScheduleResponse {
+  copyright: string;
+  totalGames: number;
+  dates: ScheduleDate[];
+}
+
+export interface ScheduleDate {
+  date: string;
+  totalGames: number;
+  games: ScheduleGame[];
+}
+
+export interface ScheduleGame {
+  gamePk: number;
+  gameDate: string;
+  status: {
+    abstractGameState: string;
+    codedGameState: string;
+    detailedState: string;
+    statusCode: string;
+  };
+  teams: {
+    away: {
+      score?: number;
+      team: {
+        id: number;
+        name: string;
+        link: string;
+      };
+    };
+    home: {
+      score?: number;
+      team: {
+        id: number;
+        name: string;
+        link: string;
+      };
+    };
+  };
+  venue: {
+    id: number;
+    name: string;
+    link: string;
   };
 }

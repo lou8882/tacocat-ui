@@ -15,7 +15,7 @@ import { MLBGameData, PlayEvent } from '../types/mlb';
 const { height: screenHeight } = Dimensions.get('window');
 
 export default function GameScreen(): React.JSX.Element {
-  const [gameData, setGameData] = useState<MLBGameData | null>(null);
+  const [_gameData, setGameData] = useState<MLBGameData | null>(null);
   const [loading, setLoading] = useState(false);
   const [currentEventIndex, setCurrentEventIndex] = useState(0);
   const [allEvents, setAllEvents] = useState<PlayEvent[]>([]);
@@ -60,7 +60,12 @@ export default function GameScreen(): React.JSX.Element {
 
   const formatTime = (timeString: string) => {
     const date = new Date(timeString);
-    return date.toLocaleTimeString();
+    return date.toLocaleTimeString([], { 
+      hour: '2-digit', 
+      minute: '2-digit', 
+      second: '2-digit',
+      hour12: true 
+    });
   };
 
   const currentEvent = allEvents[currentEventIndex];
